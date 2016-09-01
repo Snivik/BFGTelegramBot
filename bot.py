@@ -14,15 +14,22 @@ debug = False
 # GLOBAL PROPERTIES
 articles_filename = "articles.p"
 articles = {}
-max_article_length = 300
+max_article_length = 600
 period_in_minutes = 10
 picture_temp_path = 'temp.jpg'
 
+# Toggle it off to not remove links
+remove_links = True
+include_article_link = False
+include_article_link_text = u'Подробнее...'
+
 # Load Telegram params
 # See params file on how to use it
-import params_bfguns as params
+import params_motorru as params
 bot_url = params.bot_url
 channel_id = params.channel_id
+vk_public_domain = params.vk_public_domain
+
 
 # Delimiters
 delimiters = ['.', '?', '!', '...', ' ']
@@ -38,7 +45,7 @@ def get_vk_articles(count=10, domain='bfguns'):
     vk_url = 'https://api.vk.com/method/wall.get'
     response = requests.post(vk_url, data=vk_request_params)
 
-    return response;
+    return response
 
 
 def load_existing_articles():
@@ -58,30 +65,40 @@ def get_article_link(wall, id):
 def get_adapted_text(text):
     global max_article_length
     global delimiters
+    global remove_links
 
-    # Get rid of all HTML tags
-    adapted = re.sub("<.*>", "", text)
+    adapted = text
+    # Get rid of all links encoded in proper html
+    if remove_links:
+        adapted = re.sub("<a>.*</a>", "", text)
+
+    # Replace BRs with spaces, telegram can't handle them
+    adapted = re.sub("<br/?>", " ", adapted)
+
+    # Get rid of other brackets
+    adapted = re.sub("</?[a-z]+/?>", "", adapted)
+
+
 
     # Cut the string if it exceeds char length
     if len(adapted) > max_article_length:
-        adapted = adapted[0:max_article_length];
+        adapted = adapted[0:max_article_length]
 
-    # Beautify string
-    delim_index = -1;
+        # Beautify string
+        delim_index = -1
 
-    # Find first suitable delimiter
-    for delim in delimiters:
-        if delim_index > 0:
-            break
-        delim_index = adapted.rfind(delim)
+        # Find first suitable delimiter
+        for delim in delimiters:
+            if delim_index > 0:
+                break
+            delim_index = adapted.rfind(delim)
 
-    if delim_index < 0:
-        print "Following text has no delimiters"
-        print adapted
-        return None
+        if delim_index < 0:
+            print "Following text has no delimiters"
+            print adapted
+            return None
 
-    adapted = adapted[0:delim_index+1]
-
+        adapted = adapted[0:delim_index+1]
 
     return adapted
 
@@ -148,8 +165,13 @@ def post_article_to_telegram(article, processed_article_ids):
         print article
         return
 
-    article_text += u' <a href="{link}">Подробнее...</a>'.format(\
-        link=get_article_link(article['from_id'], article['id']))
+    global include_article_link_text
+    global include_article_link
+
+    if include_article_link:
+        article_text += u' <a href="{link}">{text}</a>'.format(
+            link=get_article_link(article['from_id'], article['id']),
+            text=include_article_link_text)
 
     # See if there are any attachments to download
     file = None
@@ -171,6 +193,8 @@ def post_article_to_telegram(article, processed_article_ids):
 
 def main():
 
+    global vk_public_domain
+
     # Load what we've already parsed
     load_existing_articles()
 
@@ -181,12 +205,14 @@ def main():
 
         # Load Existing articles
         try:
-            print "Downloading articles...";
-            vk_articles = get_vk_articles().json()['response']
+            if debug:
+                print "Downloading articles...";
+            vk_articles = get_vk_articles(domain=vk_public_domain).json()['response']
 
             processed_article_ids = []
 
             # Go through all articles
+            vk_articles.reverse()
             for article in vk_articles:
                 if type(article) is dict:
                     post_article_to_telegram(article, processed_article_ids)

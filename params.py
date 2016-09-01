@@ -3,3 +3,6 @@ bot_url = 'https://api.telegram.org/{bot_id}/'.format(bot_id='bot12345:AAAbbbCCC
 
 # Channel ID to send messages to. Can use @channel_name notation
 channel_id = '@testbot'
+
+# Public Domain
+vk_public_domain = 'bfguns'
