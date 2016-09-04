@@ -34,3 +34,10 @@ easily to any other.
 your article is 450, it will cut last 150, and then will search for first occuring delimeter in the list and cut to it. This ensures
 you don't get cut in the middle of the sentence or the word. You can change the order, but that seems to be an OK order
 
+`remove_links` - Whether to remove all <a>*</a> from the text
+
+`include_article_link` - Whether to include link to VK page
+
+`include_article_link_text` - What text to include under the link
+
+
