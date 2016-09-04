@@ -6,3 +6,7 @@ channel_id = '@testbot'
 
 # Public Domain
 vk_public_domain = 'bfguns'
+
+remove_links = True
+include_article_link = True
+include_article_link_text = u'Подробнее...'

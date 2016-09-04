@@ -14,22 +14,22 @@ debug = False
 # GLOBAL PROPERTIES
 articles_filename = "articles.p"
 articles = {}
-max_article_length = 600
+max_article_length = 300
 period_in_minutes = 10
 picture_temp_path = 'temp.jpg'
 
 # Toggle it off to not remove links
-remove_links = True
-include_article_link = False
-include_article_link_text = u'Подробнее...'
+
 
 # Load Telegram params
 # See params file on how to use it
-import params_motorru as params
+import params_bfguns as params
 bot_url = params.bot_url
 channel_id = params.channel_id
 vk_public_domain = params.vk_public_domain
-
+remove_links = params.remove_links
+include_article_link = params.include_article_link
+include_article_link_text = params.include_article_link_text
 
 # Delimiters
 delimiters = ['.', '?', '!', '...', ' ']
