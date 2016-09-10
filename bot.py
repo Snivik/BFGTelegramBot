@@ -23,7 +23,7 @@ picture_temp_path = 'temp.jpg'
 
 # Load Telegram params
 # See params file on how to use it
-import params_bfguns as params
+import params_sniviktest as params
 bot_url = params.bot_url
 channel_id = params.channel_id
 vk_public_domain = params.vk_public_domain
@@ -150,7 +150,8 @@ def post_article_to_telegram(article, processed_article_ids):
         return
 
     # Check if it's a post with text
-    if 'post_type' not in article or article['post_type'] != 'post':
+    if ('post_type' not in article) or (not (not (article['post_type'] != 'post') or (
+            article['post_type'] == 'copy' and article['copy_post_type'] == 'post'))):
         print 'Article is not a post'
         print article
         return
@@ -158,7 +159,11 @@ def post_article_to_telegram(article, processed_article_ids):
     # Try to compile a Telegram post
 
     # Step 1, adapt text
-    article_text = get_adapted_text(article['text'])
+    article_text = ''
+    if article['post_type'] == 'post':
+        article_text = get_adapted_text(article['text'])
+    elif article['post_type'] == 'copy':
+        article_text = get_adapted_text(article['copy_text'])
 
     if article_text is None:
         print "Failed to parse article's text"
